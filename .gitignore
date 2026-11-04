@@ -1,0 +1,17 @@
+
+# Variables de entorno
+.env
+
+# Entorno virtual
+.venv/
+
+# Caché de Python
+__pycache__/
+*.py[cod]
+
+# Metadatos de instalación
+*.egg-info/
+
+# Archivos de compilación
+build/
+dist/

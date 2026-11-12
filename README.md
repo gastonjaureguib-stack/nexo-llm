@@ -1,8 +1,10 @@
-# Nexo LLM
+# Nexo Intelligence
 
 ### Unified Async LLM Client | Python 3.12
 
-**Pre-entrega 1 — AI Engineering | Coderhouse**
+**Proyecto integral de AI Engineering | Coderhouse**
+
+La Pre-entrega 1 constituye el núcleo inicial de Nexo Intelligence y se conserva en `nexo_llm`. La Pre-entrega 2 incorporará un pipeline LCEL con LangChain y Pydantic. Por ahora, `nexo_pipeline` contiene solamente un `__init__.py` vacío, sin implementación.
 
 Nexo LLM es un cliente unificado, robusto y asíncrono para interactuar con modelos de lenguaje de **OpenAI y Anthropic** mediante una interfaz común.
 
@@ -45,31 +47,32 @@ La implementación contempla:
 
 El proyecto utiliza una arquitectura modular basada en una interfaz abstracta, implementaciones específicas por proveedor y un Manager encargado de seleccionar y delegar las operaciones.
 
+El directorio del proyecto es `nexo-intelligence/`. Ejecutar los comandos desde esa raíz.
+
 ```text
-pre-entrega-1/
-│
-├── src/
-│   └── nexo_llm/
-│       ├── __init__.py
-│       ├── schemas.py
-│       ├── base_client.py
-│       ├── openai_client.py
-│       ├── anthropic_client.py
-│       ├── manager.py
-│       └── exceptions.py
-│
-├── tests/
-│   ├── test_manager.py
-│   ├── test_clients.py
-│   ├── test_anthropic.py
-│   └── test_schemas.py
-│
-├── main.py
-├── .env.example
-├── .gitignore
-├── pyproject.toml
-├── requirements.txt
-└── README.md
+nexo-intelligence/
+|-- src/
+|   |-- nexo_llm/
+|   |   |-- __init__.py
+|   |   |-- schemas.py
+|   |   |-- base_client.py
+|   |   |-- openai_client.py
+|   |   |-- anthropic_client.py
+|   |   |-- manager.py
+|   |   `-- exceptions.py
+|   `-- nexo_pipeline/
+|       `-- __init__.py
+|-- tests/
+|   |-- test_manager.py
+|   |-- test_clients.py
+|   |-- test_anthropic.py
+|   `-- test_schemas.py
+|-- main.py
+|-- .env.example
+|-- .gitignore
+|-- pyproject.toml
+|-- requirements.txt
+`-- README.md
 ```
 
 ### Responsabilidad de cada módulo
@@ -147,8 +150,8 @@ AsyncLLMManager
 ### Clonar el repositorio
 
 ```bash
-git clone https://github.com/gastonjaureguib-stack/nexo-llm.git
-cd nexo-llm
+git clone https://github.com/gastonjaureguib-stack/nexo-llm.git nexo-intelligence
+cd nexo-intelligence
 ```
 
 ### Crear el entorno virtual
@@ -165,6 +168,9 @@ Git Bash:
 
 ```bash
 source .venv/Scripts/activate
+hash -r
+python --version  # Debe indicar Python 3.12.x
+which python     # Debe terminar en nexo-intelligence/.venv/Scripts/python
 ```
 
 PowerShell:
@@ -184,6 +190,33 @@ Este comando instala Nexo LLM en modo editable, junto con las dependencias decla
 La instalación editable permite trabajar directamente sobre los archivos de `src/nexo_llm/` sin reinstalar el paquete después de cada modificación.
 
 No es necesario configurar manualmente `PYTHONPATH`.
+
+### Reparar el entorno después de mover o renombrar la carpeta
+
+Los scripts de activación y la instalación editable guardan rutas absolutas.
+Si el entorno fue trasladado, el indicador `(.venv)` por sí solo no confirma
+que se esté usando su Python. Cerrar las terminales activadas anteriormente
+y abrir Git Bash desde la nueva raíz del proyecto.
+
+Para regenerar los scripts con el mismo Python 3.12, conservando las dependencias:
+
+```bash
+./.venv/Scripts/python.exe --version
+py -3.12 -m venv --without-pip .venv
+./.venv/Scripts/python.exe -m pip install --no-deps -e .
+source .venv/Scripts/activate
+hash -r
+python --version
+which python
+python -m pip check
+python -c "import nexo_llm, nexo_pipeline; print(nexo_llm.__file__); print(nexo_pipeline.__file__)"
+python -m unittest discover -s tests -v
+```
+
+`--no-deps` corresponde a la reparación de un entorno que ya tiene las
+versiones declaradas instaladas. Para una instalación nueva, usar
+`python -m pip install -e .` como se indica arriba.
+
 
 También se incluye `requirements.txt` como referencia de las dependencias utilizadas.
 
@@ -484,4 +517,4 @@ Repositorio: https://github.com/gastonjaureguib-stack/nexo-llm
 
 ---
 
-**Nexo LLM — Pre-entrega 1 | AI Engineering | Coderhouse**
+**Nexo Intelligence | AI Engineering | Coderhouse**

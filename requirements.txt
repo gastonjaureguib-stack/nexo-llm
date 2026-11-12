@@ -1,5 +1,6 @@
-
 openai==3.45.0
 anthropic==2.4.0
 pydantic==2.14.2
 python-dotenv==1.2.4
+langchain-core==1.8.0
+langchain-openai==1.7.4

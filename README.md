@@ -1,151 +1,147 @@
 # Nexo Intelligence
 
-### Unified Async LLM Client | Python 3.12
+**AI Engineering | Python 3.12 | Coderhouse**
 
-**Proyecto integral de AI Engineering | Coderhouse**
+Nexo Intelligence es un proyecto de AI Engineering desarrollado en dos etapas. La primera implementa un cliente asíncrono para trabajar con modelos de OpenAI y Anthropic. La segunda incorpora un pipeline de procesamiento de textos técnicos mediante LangChain, LCEL y Pydantic.
 
-La Pre-entrega 1 constituye el núcleo inicial de Nexo Intelligence y se conserva en `nexo_llm`. La Pre-entrega 2 incorporará un pipeline LCEL con LangChain y Pydantic. Por ahora, `nexo_pipeline` contiene solamente un `__init__.py` vacío, sin implementación.
+El proyecto está organizado en dos paquetes independientes:
 
-Nexo LLM es un cliente unificado, robusto y asíncrono para interactuar con modelos de lenguaje de **OpenAI y Anthropic** mediante una interfaz común.
-
-El proyecto implementa generación de respuestas, streaming asíncrono, validación de datos con Pydantic, manejo centralizado de errores y pruebas automatizadas.
+- `nexo_llm`: cliente unificado para generación de respuestas y streaming.
+- `nexo_pipeline`: extracción estructurada de tecnologías, nivel de criticidad y resumen técnico.
 
 **Repositorio:** https://github.com/gastonjaureguib-stack/nexo-llm
 
 ---
 
-## 1. Objetivos del proyecto
+## 1. Objetivos
 
-El objetivo principal es desarrollar un cliente LLM extensible que permita utilizar diferentes proveedores sin modificar la lógica principal de la aplicación.
+### Pre-entrega 1 — Unified Async LLM Client
 
-La implementación contempla:
+Desarrollar un cliente asíncrono que permita interactuar con diferentes proveedores de modelos de lenguaje mediante una interfaz común.
 
-- Una interfaz abstracta común para los proveedores.
-- Integración con los SDK oficiales de OpenAI y Anthropic.
-- Solicitudes asíncronas mediante `async` y `await`.
-- Streaming mediante generadores asíncronos, `yield` y `async for`.
-- Validación de mensajes y configuraciones mediante Pydantic.
-- Selección dinámica del proveedor a través de un Manager.
+La implementación incluye:
+
+- Integración con OpenAI y Anthropic.
+- Generación de respuestas asíncronas.
+- Streaming de respuestas.
+- Validación de mensajes y configuraciones con Pydantic.
+- Selección del proveedor mediante `AsyncLLMManager`.
 - Manejo de excepciones específicas.
-- Configuración segura mediante variables de entorno.
+- Configuración mediante variables de entorno.
 - Pruebas automatizadas con `unittest`.
+
+### Pre-entrega 2 — Pipeline de procesamiento validado
+
+Implementar un pipeline que reciba texto técnico y devuelva información estructurada y validada.
+
+Los objetivos son:
+
+- Extraer las tecnologías mencionadas explícitamente.
+- Clasificar el nivel de criticidad como `baja`, `media` o `alta`.
+- Generar un resumen técnico.
+- Validar la respuesta mediante Pydantic.
+- Construir una cadena con LangChain Expression Language (LCEL).
+- Implementar reintentos ante errores de parseo, validación o truncamiento.
+- Ejecutar el procesamiento de manera asíncrona.
+- Registrar los eventos relevantes mediante logging.
+
+La segunda entrega se incorpora sin modificar la implementación del cliente original.
+
+---
 
 ## 2. Tecnologías utilizadas
 
-| Tecnología | Versión | Propósito |
+| Tecnología | Versión | Uso |
 |---|---|---|
 | Python | 3.12 | Lenguaje principal |
 | OpenAI SDK | 3.45.0 | Integración con OpenAI |
 | Anthropic SDK | 2.4.0 | Integración con Anthropic |
-| Pydantic | 2.14.2 | Validación de datos |
-| python-dotenv | 1.2.4 | Gestión de variables de entorno |
+| Pydantic | 2.14.2 | Modelos y validación de datos |
+| python-dotenv | 1.2.4 | Variables de entorno |
+| langchain-core | 1.8.0 | Prompts, LCEL y reintentos |
+| langchain-openai | 1.7.4 | Integración de ChatOpenAI |
 | unittest | Biblioteca estándar | Pruebas automatizadas |
-| unittest.mock | Biblioteca estándar | Simulación de APIs |
-| setuptools | Sistema de construcción | Instalación del paquete |
+| unittest.mock | Biblioteca estándar | Simulación de dependencias |
+| setuptools | Sistema de construcción | Instalación del proyecto |
 
-## 3. Arquitectura del proyecto
+Las dependencias están declaradas en `pyproject.toml` y `requirements.txt`.
 
-El proyecto utiliza una arquitectura modular basada en una interfaz abstracta, implementaciones específicas por proveedor y un Manager encargado de seleccionar y delegar las operaciones.
+---
 
-El directorio del proyecto es `nexo-intelligence/`. Ejecutar los comandos desde esa raíz.
+## 3. Estructura del proyecto
 
 ```text
 nexo-intelligence/
-|-- src/
-|   |-- nexo_llm/
-|   |   |-- __init__.py
-|   |   |-- schemas.py
-|   |   |-- base_client.py
-|   |   |-- openai_client.py
-|   |   |-- anthropic_client.py
-|   |   |-- manager.py
-|   |   `-- exceptions.py
-|   `-- nexo_pipeline/
-|       `-- __init__.py
-|-- tests/
-|   |-- test_manager.py
-|   |-- test_clients.py
-|   |-- test_anthropic.py
-|   `-- test_schemas.py
-|-- main.py
-|-- .env.example
-|-- .gitignore
-|-- pyproject.toml
-|-- requirements.txt
-`-- README.md
+├── src/
+│   ├── nexo_llm/
+│   │   ├── __init__.py
+│   │   ├── schemas.py
+│   │   ├── base_client.py
+│   │   ├── openai_client.py
+│   │   ├── anthropic_client.py
+│   │   ├── manager.py
+│   │   └── exceptions.py
+│   │
+│   └── nexo_pipeline/
+│       ├── __init__.py
+│       ├── schemas.py
+│       └── chain.py
+│
+├── tests/
+│   ├── test_manager.py
+│   ├── test_clients.py
+│   ├── test_anthropic.py
+│   ├── test_schemas.py
+│   └── test_pipeline.py
+│
+├── main.py
+├── probar_pipeline.py
+├── .env.example
+├── .gitignore
+├── pyproject.toml
+├── requirements.txt
+└── README.md
 ```
 
-### Responsabilidad de cada módulo
+### Responsabilidad de los módulos
 
-**`schemas.py`**
+**`src/nexo_llm/`**
 
-Define los modelos de datos utilizados por la aplicación mediante Pydantic.
+Contiene la implementación correspondiente a la Pre-entrega 1.
 
-**`base_client.py`**
+- `schemas.py`: modelos Pydantic para mensajes, configuración y respuestas.
+- `base_client.py`: interfaz abstracta de los clientes.
+- `openai_client.py`: implementación del cliente OpenAI.
+- `anthropic_client.py`: implementación del cliente Anthropic.
+- `manager.py`: selección y delegación de operaciones.
+- `exceptions.py`: excepciones personalizadas.
 
-Establece el contrato abstracto que deben implementar los clientes de los distintos proveedores.
+**`src/nexo_pipeline/`**
 
-**`openai_client.py`**
+Contiene la implementación de la Pre-entrega 2.
 
-Implementa la comunicación asíncrona con OpenAI, incluyendo generación, streaming y traducción de errores.
+- `schemas.py`: modelo de extracción y validaciones.
+- `chain.py`: prompt, cadena LCEL, reintentos, logging y función de procesamiento.
 
-**`anthropic_client.py`**
+**Archivos ejecutables**
 
-Implementa la comunicación asíncrona con Anthropic, incluyendo el tratamiento específico de mensajes de sistema.
-
-**`manager.py`**
-
-Selecciona el cliente correspondiente al proveedor configurado y delega las operaciones de generación y streaming.
-
-**`exceptions.py`**
-
-Centraliza las excepciones personalizadas de la aplicación.
-
-**`main.py`**
-
-Funciona como punto de entrada y demuestra la generación normal y en streaming.
+- `main.py`: ejemplo de generación y streaming de la primera entrega.
+- `probar_pipeline.py`: ejemplo de extracción técnica de la segunda entrega.
 
 **`tests/`**
 
-Contiene las pruebas automatizadas de los componentes principales.
+Contiene las pruebas automatizadas de ambas entregas.
 
-## 4. Flujo de funcionamiento
+---
 
-El flujo general de Nexo LLM es:
+## 4. Instalación
 
-```text
-main.py
-   |
-   v
-AsyncLLMManager
-   |
-   +---- OpenAIClient
-   |        |
-   |        +---- AsyncOpenAI
-   |
-   +---- AnthropicClient
-            |
-            +---- AsyncAnthropic
-```
-
-1. `main.py` carga la configuración del entorno.
-2. Se selecciona el proveedor indicado en `LLM_PROVIDER`.
-3. `AsyncLLMManager` instancia el cliente correspondiente.
-4. El cliente valida y utiliza los datos recibidos mediante los esquemas definidos.
-5. Se ejecuta la solicitud asíncrona al proveedor.
-6. La respuesta se devuelve de forma normalizada o mediante fragmentos de streaming.
-7. Los errores conocidos se traducen a excepciones comunes de Nexo LLM.
-
-## 5. Instalación
-
-### Requisitos previos
+### Requisitos
 
 - Python 3.12.
-- pip.
-- Git.
-- Conexión a internet para utilizar las APIs.
-- Una clave API válida del proveedor seleccionado.
-- Acceso a un modelo compatible y cuota disponible.
+- Git y pip.
+- Una clave API válida para realizar solicitudes reales.
+- Conectividad y cuota disponible en el proveedor correspondiente.
 
 ### Clonar el repositorio
 
@@ -162,83 +158,61 @@ En Windows:
 py -3.12 -m venv .venv
 ```
 
-### Activar el entorno virtual
-
-Git Bash:
+Activarlo desde Git Bash:
 
 ```bash
 source .venv/Scripts/activate
-hash -r
-python --version  # Debe indicar Python 3.12.x
-which python     # Debe terminar en nexo-intelligence/.venv/Scripts/python
 ```
 
-PowerShell:
+En PowerShell:
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
-### Instalar el proyecto
+### Instalar las dependencias
 
 ```bash
 python -m pip install -e .
 ```
 
-Este comando instala Nexo LLM en modo editable, junto con las dependencias declaradas en `pyproject.toml`.
-
-La instalación editable permite trabajar directamente sobre los archivos de `src/nexo_llm/` sin reinstalar el paquete después de cada modificación.
+La instalación editable permite trabajar directamente sobre los paquetes ubicados en `src/`.
 
 No es necesario configurar manualmente `PYTHONPATH`.
 
-### Reparar el entorno después de mover o renombrar la carpeta
-
-Los scripts de activación y la instalación editable guardan rutas absolutas.
-Si el entorno fue trasladado, el indicador `(.venv)` por sí solo no confirma
-que se esté usando su Python. Cerrar las terminales activadas anteriormente
-y abrir Git Bash desde la nueva raíz del proyecto.
-
-Para regenerar los scripts con el mismo Python 3.12, conservando las dependencias:
-
-```bash
-./.venv/Scripts/python.exe --version
-py -3.12 -m venv --without-pip .venv
-./.venv/Scripts/python.exe -m pip install --no-deps -e .
-source .venv/Scripts/activate
-hash -r
-python --version
-which python
-python -m pip check
-python -c "import nexo_llm, nexo_pipeline; print(nexo_llm.__file__); print(nexo_pipeline.__file__)"
-python -m unittest discover -s tests -v
-```
-
-`--no-deps` corresponde a la reparación de un entorno que ya tiene las
-versiones declaradas instaladas. Para una instalación nueva, usar
-`python -m pip install -e .` como se indica arriba.
-
-
-También se incluye `requirements.txt` como referencia de las dependencias utilizadas.
-
-### Verificar las dependencias
+Para comprobar la instalación:
 
 ```bash
 python -m pip check
 ```
 
-Si la instalación es correcta, el resultado esperado es:
+El resultado esperado, si no existen conflictos entre dependencias, es:
 
 ```text
 No broken requirements found.
 ```
 
-## 6. Configuración de variables de entorno
+### Si se mueve la carpeta del proyecto
 
-El proyecto utiliza `python-dotenv` para cargar las variables de entorno.
+Los entornos virtuales pueden conservar rutas absolutas. Si se traslada el proyecto, puede ser necesario recrear el entorno e instalar nuevamente las dependencias.
 
-Crear un archivo `.env` en la raíz del proyecto tomando como referencia `.env.example`.
+En ese caso, desde la nueva ubicación:
 
-### Ejemplo de configuración para OpenAI
+```bash
+py -3.12 -m venv .venv
+source .venv/Scripts/activate
+python -m pip install -e .
+```
+
+---
+
+## 5. Variables de entorno
+
+El proyecto utiliza `python-dotenv` para cargar la configuración.
+
+Crear un archivo `.env` en la raíz a partir de `.env.example`.
+
+Ejemplo:
 
 ```dotenv
 LLM_PROVIDER=openai
@@ -246,159 +220,335 @@ LLM_PROVIDER=openai
 OPENAI_API_KEY=TU_CLAVE_OPENAI
 ANTHROPIC_API_KEY=
 
-OPENAI_MODEL=MODELO_OPENAI_COMPATIBLE
+OPENAI_MODEL=gpt-4o-mini
 ANTHROPIC_MODEL=
-```
-
-### Ejemplo de configuración para Anthropic
-
-```dotenv
-LLM_PROVIDER=anthropic
-
-OPENAI_API_KEY=
-ANTHROPIC_API_KEY=TU_CLAVE_ANTHROPIC
-
-OPENAI_MODEL=
-ANTHROPIC_MODEL=MODELO_ANTHROPIC_COMPATIBLE
 ```
 
 ### Variables disponibles
 
 | Variable | Descripción |
 |---|---|
-| `LLM_PROVIDER` | Proveedor activo: `openai` o `anthropic` |
-| `OPENAI_API_KEY` | Clave de autenticación de OpenAI |
-| `ANTHROPIC_API_KEY` | Clave de autenticación de Anthropic |
-| `OPENAI_MODEL` | Identificador del modelo de OpenAI |
-| `ANTHROPIC_MODEL` | Identificador del modelo de Anthropic |
+| `LLM_PROVIDER` | Proveedor seleccionado para `main.py` |
+| `OPENAI_API_KEY` | Clave de OpenAI |
+| `ANTHROPIC_API_KEY` | Clave de Anthropic |
+| `OPENAI_MODEL` | Modelo de OpenAI |
+| `ANTHROPIC_MODEL` | Modelo de Anthropic |
 
-Los identificadores de modelo deben corresponder a modelos habilitados para la cuenta del proveedor y compatibles con los parámetros utilizados.
+El cliente de la primera entrega permite seleccionar OpenAI o Anthropic.
 
-**Seguridad:** nunca incluir claves reales en el repositorio. El archivo `.env` está excluido mediante `.gitignore`.
+El pipeline de la segunda entrega utiliza `ChatOpenAI` y requiere `OPENAI_API_KEY`. Si `OPENAI_MODEL` no está definido o está vacío, utiliza `gpt-4o-mini`.
 
-Las solicitudes reales pueden generar costos según las condiciones de cada proveedor.
+El archivo `.env` está excluido del repositorio mediante `.gitignore`. Las claves reales no deben incluirse en los commits.
 
-## 7. Ejecución de la aplicación
+Las solicitudes a los proveedores pueden generar costos.
 
-Desde la raíz del proyecto, con el entorno virtual activado y el paquete instalado:
+---
+
+## 6. Pre-entrega 1 — Cliente LLM asíncrono
+
+### Arquitectura
+
+La primera entrega utiliza una interfaz abstracta y un administrador que selecciona el proveedor correspondiente.
+
+```text
+main.py
+   |
+   v
+AsyncLLMManager
+   |
+   +---- OpenAIClient
+   |         |
+   |         v
+   |     AsyncOpenAI
+   |
+   +---- AnthropicClient
+             |
+             v
+       AsyncAnthropic
+```
+
+### Modelos Pydantic
+
+**ChatMessage**
+
+Representa los mensajes enviados al modelo.
+
+- `role`: `system`, `user` o `assistant`.
+- `content`: contenido textual obligatorio.
+
+**ModelConfig**
+
+Define la configuración de generación.
+
+- `model`: identificador del modelo.
+- `temperature`: valor entre 0 y 2.
+- `max_tokens`: entero mayor que 0.
+
+Los valores predeterminados son `temperature=0.7` y `max_tokens=500`.
+
+**ModelResponse**
+
+Normaliza la respuesta mediante:
+
+- `provider`: proveedor utilizado.
+- `model`: modelo utilizado.
+- `content`: respuesta textual.
+
+### Interfaz BaseLLMClient
+
+La clase abstracta define dos operaciones principales.
+
+**`generate()`**
+
+Realiza una solicitud asíncrona y devuelve una respuesta completa mediante `ModelResponse`.
+
+**`stream()`**
+
+Permite consumir los fragmentos de respuesta utilizando un generador asíncrono.
+
+### AsyncLLMManager
+
+El administrador recibe el proveedor configurado, selecciona el cliente correspondiente y delega las operaciones de generación y streaming.
+
+Esto permite mantener una interfaz común sin incorporar en el Manager los detalles particulares de cada SDK.
+
+### Manejo de excepciones
+
+El proyecto define excepciones para representar errores conocidos de los proveedores.
+
+| Excepción | Situación |
+|---|---|
+| `LLMError` | Excepción base |
+| `LLMAuthenticationError` | Error de autenticación |
+| `LLMConnectionError` | Error de conexión o timeout |
+| `LLMRateLimitError` | Límite de solicitudes |
+| `LLMAPIError` | Error general de la API |
+
+### Ejecución
+
+Desde la raíz del proyecto:
 
 ```bash
 python main.py
 ```
 
-La aplicación ejecuta la pregunta establecida en la consigna:
+El script utiliza la pregunta:
 
 **¿Qué es la entropía?**
 
-Se realizan dos operaciones consecutivas.
+Realiza una generación completa y una generación mediante streaming.
 
-### Generación normal
+El comportamiento depende del proveedor, modelo y credenciales configurados.
 
-Se utiliza `await` para obtener una respuesta completa:
+---
+
+## 7. Pre-entrega 2 — Pipeline de extracción técnica
+
+La segunda entrega incorpora un pipeline de procesamiento de textos técnicos mediante LangChain y Pydantic.
+
+Recibe un texto, identifica las tecnologías mencionadas, determina el nivel de criticidad y genera un resumen técnico.
+
+### 7.1. Modelo de datos
+
+El archivo `src/nexo_pipeline/schemas.py` define `ExtraccionTecnica`.
 
 ```python
-response = await manager.generate(
-    messages,
-    config
+class ExtraccionTecnica(BaseModel):
+    tecnologias: list[str] = Field(min_length=1)
+    nivel_de_criticidad: NivelCriticidad
+    resumen_tecnico: str = Field(min_length=1)
+```
+
+El esquema establece tres campos obligatorios.
+
+| Campo | Tipo | Validación |
+|---|---|---|
+| `tecnologias` | `list[str]` | Al menos una tecnología; sin nombres vacíos |
+| `nivel_de_criticidad` | Enum | `baja`, `media` o `alta` |
+| `resumen_tecnico` | `str` | Texto no vacío |
+
+El enum `NivelCriticidad` restringe los valores admitidos.
+
+Además, se utilizan validadores para rechazar nombres de tecnologías o resúmenes que contengan únicamente espacios.
+
+Si una respuesta incumple el esquema, Pydantic genera un error de validación.
+
+### 7.2. Prompt modular
+
+El archivo `chain.py` contiene las instrucciones de extracción y construye un `ChatPromptTemplate`.
+
+```python
+prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", "{instrucciones}"),
+        ("human", "{texto}")
+    ]
+).partial(instrucciones=INSTRUCCIONES_EXTRACCION)
+```
+
+Las instrucciones se mantienen separadas del texto que se desea procesar.
+
+El prompt establece los criterios de criticidad:
+
+- **Baja:** información general, operaciones normales o avisos menores.
+- **Media:** errores parciales, degradación del servicio o problemas recuperables.
+- **Alta:** interrupciones del servicio, pérdida de datos o fallos críticos.
+
+También indica que no deben inventarse tecnologías que no estén mencionadas explícitamente.
+
+### 7.3. Cadena LCEL
+
+La extracción se construye mediante LangChain Expression Language:
+
+```python
+cadena = prompt | modelo.with_structured_output(
+    ExtraccionTecnica,
+    include_raw=True
 )
-
-print(response.content)
 ```
 
-### Generación mediante streaming
+La composición conecta el prompt con el modelo configurado para producir una salida estructurada.
 
-Se utiliza `async for` para procesar los fragmentos de respuesta a medida que se reciben:
+`with_structured_output()` utiliza el esquema Pydantic como contrato de salida.
+
+La opción `include_raw=True` permite conservar la respuesta original junto con el resultado interpretado y los posibles errores de parseo.
+
+Esto es necesario para verificar el estado de finalización de la respuesta antes de aceptarla.
+
+### 7.4. Flujo de procesamiento
+
+```text
+probar_pipeline.py
+        |
+        v
+process_text(text)
+        |
+        v
+crear_cadena()
+        |
+        v
+ChatPromptTemplate
+        |
+        v
+ChatOpenAI
+        |
+        v
+Salida estructurada
+        |
+        v
+Validación y control de truncamiento
+        |
+        +---- Error recuperable
+        |          |
+        |          v
+        |       Reintento
+        |
+        v
+ExtraccionTecnica
+        |
+        v
+JSON
+```
+
+La función `process_text()` es el punto de entrada del pipeline.
+
+Recibe un texto, verifica que no esté vacío y ejecuta la cadena de manera asíncrona.
 
 ```python
-async for fragment in manager.stream(
-    messages,
-    config
-):
-    print(fragment, end="", flush=True)
+async def process_text(text: str) -> ExtraccionTecnica:
 ```
 
-La aplicación presenta el proveedor, el modelo y la pregunta utilizada.
+La ejecución utiliza `.ainvoke()` y devuelve una instancia validada de `ExtraccionTecnica`.
 
-Si se produce un error conocido, se muestra un mensaje controlado.
+### 7.5. Validación y reintentos
 
-## 8. Interfaz abstracta BaseLLMClient
+La cadena implementa resiliencia mediante `.with_retry()`.
 
-`BaseLLMClient` define los métodos comunes que deben implementar los proveedores.
+Se permiten **hasta tres intentos en total**, incluyendo la ejecución inicial.
 
-### generate()
+Los reintentos se aplican a errores de:
 
-Método asíncrono encargado de solicitar una respuesta completa.
+- Parseo de la respuesta.
+- Validación de Pydantic.
+- Truncamiento de la salida.
 
-Recibe:
+La configuración desactiva la espera exponencial con jitter mediante `wait_exponential_jitter=False`.
 
-- `messages`: lista de objetos `ChatMessage`.
-- `config`: objeto `ModelConfig`.
+También se desactivan los reintentos internos del modelo con `max_retries=0`, para evitar la multiplicación de intentos entre diferentes capas.
 
-Devuelve:
+Cada reintento vuelve a solicitar una respuesta al modelo. El pipeline no modifica manualmente el JSON inválido.
 
-- `ModelResponse`.
+Si se agotan los intentos, se propaga el error correspondiente.
 
-### stream()
+### 7.6. Detección de truncamiento
 
-Método que permite consumir una respuesta mediante un iterador asíncrono de fragmentos de texto.
+El pipeline inspecciona `finish_reason` en los metadatos de la respuesta.
 
-Esta interfaz permite que `AsyncLLMManager` utilice ambos proveedores sin incorporar lógica específica de sus SDK.
+Cuando el valor es `length`, se considera que la generación terminó por alcanzar el límite de tokens.
 
-## 9. Modelos de datos con Pydantic
+En ese caso se genera `RespuestaTruncadaError`, incluso si la información recibida parece válida.
 
-### ChatMessage
+También se contempla `LengthFinishReasonError`, que puede producirse cuando el SDK detecta el truncamiento antes de devolver la respuesta.
 
-Representa un mensaje de conversación.
+El modelo está configurado con un máximo de 1000 tokens por intento.
 
-| Campo | Tipo | Validación |
-|---|---|---|
-| `role` | Literal | `system`, `user` o `assistant` |
-| `content` | str | No puede estar vacío |
+### 7.7. Logging
 
-### ModelConfig
+Se utiliza el módulo estándar `logging` de Python para registrar eventos del procesamiento.
 
-Representa la configuración de generación.
+Los registros incluyen:
 
-| Campo | Tipo | Validación |
-|---|---|---|
-| `model` | str | No puede estar vacío |
-| `temperature` | float | Entre 0 y 2 |
-| `max_tokens` | int | Mayor que 0 |
+- Inicio del procesamiento.
+- Validación correcta.
+- Errores de extracción.
+- Intentos de recuperación.
+- Fallo definitivo.
 
-Valores predeterminados:
+Los mensajes no incluyen las claves API ni el contenido completo del texto procesado o de la respuesta del proveedor.
 
-- `temperature`: 0.7.
-- `max_tokens`: 500.
+### 7.8. Ejecución del pipeline
 
-### ModelResponse
+El archivo `probar_pipeline.py` contiene un ejemplo asíncrono.
 
-Normaliza las respuestas de los proveedores mediante tres campos obligatorios:
+Para ejecutarlo:
 
-- `provider`: proveedor utilizado.
-- `model`: modelo que generó la respuesta.
-- `content`: contenido textual de la respuesta.
+```bash
+python probar_pipeline.py
+```
 
-Las validaciones de Pydantic controlan la estructura y los límites definidos en los esquemas. Las restricciones específicas de cada proveedor también deben respetarse.
+El script procesa el siguiente texto:
 
-## 10. Manejo de excepciones
+```text
+El servidor Node.js dejó de responder. La API devuelve errores 500 y los usuarios no pueden acceder al sistema.
+```
 
-Nexo LLM utiliza una jerarquía de excepciones personalizadas para representar errores de manera uniforme.
+El resultado se muestra como JSON mediante `model_dump_json(indent=2)`.
 
-| Excepción | Situación |
-|---|---|
-| `LLMError` | Excepción base |
-| `LLMAuthenticationError` | Credenciales rechazadas |
-| `LLMConnectionError` | Fallo de conexión o timeout |
-| `LLMRateLimitError` | Límite de solicitudes o cuota |
-| `LLMAPIError` | Error HTTP general del proveedor |
+### 7.9. Ejemplo de salida
 
-Los clientes capturan errores conocidos de sus respectivos SDK y los transforman en excepciones propias de Nexo LLM.
+Una respuesta posible es:
 
-Esto permite que la aplicación maneje los errores sin depender directamente de las clases específicas de cada proveedor.
+```json
+{
+  "tecnologias": [
+    "Node.js"
+  ],
+  "nivel_de_criticidad": "alta",
+  "resumen_tecnico": "El servidor Node.js dejó de responder, la API devuelve errores 500 y los usuarios no pueden acceder al sistema."
+}
+```
 
-## 11. Pruebas automatizadas
+La salida es ilustrativa. El contenido exacto del resumen puede variar según la respuesta del modelo.
 
-El proyecto utiliza `unittest`, `AsyncMock` y `MagicMock` para verificar el comportamiento de los componentes sin realizar solicitudes reales a las APIs.
+La criticidad esperada es alta porque el texto describe una interrupción del servicio que impide el acceso de los usuarios.
+
+**Importante:** `probar_pipeline.py` realiza una solicitud real a OpenAI. Requiere credenciales válidas, conectividad, acceso a un modelo compatible y cuota disponible.
+
+---
+
+## 8. Pruebas automatizadas
+
+El proyecto utiliza `unittest` y herramientas de simulación para verificar el comportamiento sin depender de solicitudes reales a las APIs.
 
 ### Ejecutar todas las pruebas
 
@@ -406,102 +556,101 @@ El proyecto utiliza `unittest`, `AsyncMock` y `MagicMock` para verificar el comp
 python -m unittest discover -s tests -v
 ```
 
-### Resultados verificados
+### Ejecutar únicamente las pruebas del pipeline
+
+```bash
+python -m unittest discover -s tests -p "test_pipeline.py" -v
+```
+
+### Resultados
 
 | Componente | Pruebas aprobadas |
 |---|---:|
 | AsyncLLMManager | 5 |
 | OpenAIClient | 7 |
 | AnthropicClient | 7 |
-| Esquemas Pydantic | 15 |
-| **Total** | **34** |
+| Esquemas de la Pre-entrega 1 | 15 |
+| Pipeline de la Pre-entrega 2 | 14 |
+| **Total** | **48** |
 
 Resultado de la ejecución local:
 
 ```text
-Ran 34 tests in 0.367s
+Ran 48 tests in 1.499s
 
 OK
 ```
 
-### Escenarios comprobados
+### Pruebas de la Pre-entrega 1
 
-**AsyncLLMManager**
+Se comprueban:
 
-- Selección de OpenAI.
-- Selección de Anthropic.
-- Rechazo de proveedores desconocidos.
-- Delegación de generación asíncrona.
-- Delegación de streaming asíncrono.
+- Selección y rechazo de proveedores.
+- Delegación de generación y streaming.
+- Manejo de errores de autenticación.
+- Errores de conexión y límites de solicitudes.
+- Generación y streaming simulados.
+- Validación de los modelos Pydantic.
 
-**OpenAIClient**
+### Pruebas de la Pre-entrega 2
 
-- Autenticación fallida.
-- Límite de solicitudes.
-- Error de conexión.
-- Error HTTP general.
-- Error de autenticación durante streaming.
-- Generación exitosa simulada.
-- Streaming exitoso simulado.
+Se comprueban:
 
-**AnthropicClient**
+- Extracción asíncrona con respuestas simuladas.
+- Validación de campos obligatorios.
+- Rechazo de valores inválidos.
+- Errores de parseo.
+- Reintentos después de respuestas inválidas.
+- Recuperación después de un error.
+- Agotamiento de los intentos.
+- Detección de respuestas truncadas.
+- Manejo de errores no recuperables.
+- Rechazo de textos vacíos.
+- Registro de eventos mediante logging.
+- Integración del parser de `ChatOpenAI` sin acceso a la red.
 
-- Autenticación fallida.
-- Límite de solicitudes.
-- Error de conexión.
-- Error HTTP general.
-- Error de autenticación durante streaming.
-- Generación exitosa simulada.
-- Streaming exitoso simulado.
+Las pruebas de la segunda entrega utilizan modelos simulados y mocks para comprobar la lógica del pipeline.
 
-**Pydantic**
+Los 34 tests originales de la primera entrega se mantienen y se ejecutan junto con los 14 nuevos.
 
-- Roles válidos e inválidos.
-- Contenido obligatorio.
-- Valores predeterminados.
-- Límites de temperatura.
-- Valores válidos e inválidos de tokens.
-- Identificador de modelo obligatorio.
-- Campos obligatorios de respuesta.
+---
 
-### Alcance de las pruebas
+## 9. Seguridad y limitaciones
 
-Las 34 pruebas automatizadas utilizan simulaciones de las respuestas y errores de los proveedores.
+### Seguridad
 
-Se verificó también:
+- Las claves se gestionan mediante variables de entorno.
+- `.env` está excluido del repositorio.
+- Se utiliza un entorno virtual independiente.
+- Los datos estructurados se validan mediante Pydantic.
+- Los errores recuperables se controlan mediante reintentos limitados.
+- El logging evita registrar claves y contenido completo de las solicitudes.
 
-- Instalación editable del paquete.
-- Importaciones sin `PYTHONPATH`.
-- Consistencia de dependencias mediante `pip check`.
+### Limitaciones
 
-**No se ha confirmado todavía una ejecución real de `main.py` contra las APIs de OpenAI o Anthropic.** Por lo tanto, las pruebas automatizadas no deben interpretarse como evidencia de conectividad real, disponibilidad de modelos o credenciales válidas.
+La Pre-entrega 1 permite trabajar con OpenAI y Anthropic mediante una interfaz común, mientras que el pipeline de la segunda entrega utiliza específicamente OpenAI.
 
-## 12. Seguridad y buenas prácticas
+La extracción requiere al menos una tecnología identificable. Si el texto no menciona ninguna, el esquema no admite una lista vacía y el modelo debe cumplir esa restricción.
 
-El proyecto aplica las siguientes prácticas:
+El pipeline no incluye interfaz gráfica, persistencia de resultados ni almacenamiento de conversaciones.
 
-- Uso de variables de entorno para credenciales.
-- Exclusión de `.env` del repositorio.
-- Entorno virtual independiente.
-- Separación modular de responsabilidades.
-- Interfaz abstracta común.
-- Validación de entradas mediante Pydantic.
-- Manejo centralizado de errores conocidos.
-- Pruebas automatizadas independientes de servicios externos.
-- Dependencias con versiones fijadas.
-- Configuración de instalación mediante `pyproject.toml`.
+Las pruebas automatizadas comprueban el comportamiento utilizando simulaciones. **No se ha verificado una ejecución real del pipeline contra OpenAI durante esta implementación.**
 
-## 13. Alcance y limitaciones
+Por lo tanto, los tests aprobados no garantizan la disponibilidad de credenciales, conectividad, cuota o acceso al modelo en una ejecución real.
 
-Esta implementación corresponde a la primera pre-entrega de AI Engineering y se concentra en construir una base funcional para interactuar con proveedores LLM.
+---
 
-Incluye generación normal, streaming, validación, selección de proveedores y manejo de errores conocidos.
+## 10. Estado del proyecto
 
-No incluye interfaz gráfica, persistencia de conversaciones ni almacenamiento de respuestas.
+**Pre-entrega 1 — Unified Async LLM Client**
 
-Tampoco implementa una política propia de reintentos; el comportamiento de reintentos del SDK depende de su configuración y versión.
+Implementada y conservada en `src/nexo_llm/`.
 
-La ejecución real requiere credenciales, conectividad y modelos compatibles.
+**Pre-entrega 2 — Pipeline de procesamiento validado**
+
+Implementada en `src/nexo_pipeline/`, con extracción estructurada, validación, reintentos, logging y ejecución asíncrona.
+
+**Pruebas automatizadas:** 48 aprobadas.
 
 ---
 
@@ -514,7 +663,3 @@ AI Engineering — Coderhouse
 GitHub: https://github.com/gastonjaureguib-stack
 
 Repositorio: https://github.com/gastonjaureguib-stack/nexo-llm
-
----
-
-**Nexo Intelligence | AI Engineering | Coderhouse**

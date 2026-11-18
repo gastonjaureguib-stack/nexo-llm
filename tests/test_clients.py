@@ -1,7 +1,8 @@
 
 import unittest
+from types import SimpleNamespace
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from openai import (
     AuthenticationError,
@@ -24,6 +25,7 @@ from nexo_llm.exceptions import (
 class TestOpenAIClient(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self):
+        self.enterContext(patch("nexo_llm.openai_client.AsyncOpenAI"))
         self.client = OpenAIClient(
             api_key="clave-de-prueba"
         )
@@ -140,10 +142,13 @@ class TestOpenAIClient(unittest.IsolatedAsyncioTestCase):
                 pass
 
     async def test_generate_success(self):
-        response = MagicMock()
-        response.model = "modelo-de-prueba"
-        response.choices[0].message.content = (
-            "La entropía mide la incertidumbre."
+        response = SimpleNamespace(
+            model="modelo-de-prueba",
+            choices=[
+                SimpleNamespace(
+                    message=SimpleNamespace(content="La entropía mide la incertidumbre.")
+                )
+            ]
         )
 
         self.client.client.chat.completions.create = AsyncMock(
@@ -167,14 +172,15 @@ class TestOpenAIClient(unittest.IsolatedAsyncioTestCase):
     async def test_stream_success(self):
 
         async def mock_stream():
+            yield SimpleNamespace(choices=[])
             for content in [
                 "La entropía ",
                 None,
                 "mide la incertidumbre."
             ]:
-                chunk = MagicMock()
-                chunk.choices[0].delta.content = content
-                yield chunk
+                yield SimpleNamespace(
+                    choices=[SimpleNamespace(delta=SimpleNamespace(content=content))]
+                )
 
         self.client.client.chat.completions.create = AsyncMock(
             return_value=mock_stream()
@@ -201,7 +207,13 @@ class TestOpenAIClient(unittest.IsolatedAsyncioTestCase):
             "La entropía mide la incertidumbre."
         )
 
-        self.client.client.chat.completions.create.assert_awaited_once()
+        self.client.client.chat.completions.create.assert_awaited_once_with(
+            model=self.config.model,
+            messages=[message.model_dump() for message in self.messages],
+            temperature=self.config.temperature,
+            max_tokens=self.config.max_tokens,
+            stream=True
+        )
 
 
 if __name__ == "__main__":

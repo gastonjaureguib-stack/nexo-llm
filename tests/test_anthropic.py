@@ -1,6 +1,7 @@
 
 import unittest
-from unittest.mock import AsyncMock, MagicMock
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from anthropic import (
     AuthenticationError,
@@ -22,6 +23,7 @@ from nexo_llm.exceptions import (
 class TestAnthropicClient(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self):
+        self.enterContext(patch("nexo_llm.anthropic_client.AsyncAnthropic", autospec=True))
         self.client = AnthropicClient(
             api_key="clave-de-prueba"
         )
@@ -137,16 +139,14 @@ class TestAnthropicClient(unittest.IsolatedAsyncioTestCase):
                 pass
 
     async def test_generate_success(self):
-        response = MagicMock()
-        response.model = "modelo-de-prueba"
-
-        text_block = MagicMock()
-        text_block.type = "text"
-        text_block.text = (
-            "La entropía mide la incertidumbre."
+        response = SimpleNamespace(
+            model="modelo-de-prueba",
+            content=[
+                SimpleNamespace(type="text", text="La entropía mide "),
+                SimpleNamespace(type="tool_use"),
+                SimpleNamespace(type="text", text="la incertidumbre."),
+            ]
         )
-
-        response.content = [text_block]
 
         self.client.client.messages.create = AsyncMock(
             return_value=response
@@ -180,8 +180,7 @@ class TestAnthropicClient(unittest.IsolatedAsyncioTestCase):
             yield "La entropía "
             yield "mide la incertidumbre."
 
-        stream_response = MagicMock()
-        stream_response.text_stream = mock_text_stream()
+        stream_response = SimpleNamespace(text_stream=mock_text_stream())
 
         stream_context = MagicMock()
         stream_context.__aenter__ = AsyncMock(
@@ -217,6 +216,8 @@ class TestAnthropicClient(unittest.IsolatedAsyncioTestCase):
         )
 
         self.client.client.messages.stream.assert_called_once()
+        stream_context.__aenter__.assert_awaited_once()
+        stream_context.__aexit__.assert_awaited_once_with(None, None, None)
 
 
 if __name__ == "__main__":

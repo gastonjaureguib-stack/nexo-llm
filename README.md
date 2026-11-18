@@ -88,6 +88,7 @@ nexo-intelligence/
 │       └── chain.py
 │
 ├── tests/
+│   ├── __init__.py
 │   ├── test_manager.py
 │   ├── test_clients.py
 │   ├── test_anthropic.py
@@ -140,8 +141,7 @@ Contiene las pruebas automatizadas de ambas entregas.
 
 - Python 3.12.
 - Git y pip.
-- Una clave API válida para realizar solicitudes reales.
-- Conectividad y cuota disponible en el proveedor correspondiente.
+- Para ejecutar los ejemplos con solicitudes reales, una clave API válida, conectividad y cuota disponible en el proveedor correspondiente.
 
 ### Clonar el repositorio
 
@@ -169,6 +169,8 @@ En PowerShell:
 ```powershell
 .\.venv\Scripts\Activate.ps1
 ```
+
+Si PowerShell bloquea la activación, usá `.\.venv\Scripts\python.exe` en lugar de `python` en los comandos de instalación y ejecución.
 
 ### Instalar las dependencias
 
@@ -552,14 +554,18 @@ El proyecto utiliza `unittest` y herramientas de simulación para verificar el c
 
 ### Ejecutar todas las pruebas
 
+Desde la raíz del proyecto, después de instalarlo en modo editable con el intérprete del entorno virtual:
+
 ```bash
-python -m unittest discover -s tests -v
+python -m unittest discover -v
 ```
+
+Las pruebas funcionan sin archivo `.env` ni claves de API. Los SDK se simulan en las pruebas de los clientes. La prueba de integración de LangChain usa un transporte HTTP en memoria y el trazado externo está desactivado durante las pruebas del pipeline.
 
 ### Ejecutar únicamente las pruebas del pipeline
 
 ```bash
-python -m unittest discover -s tests -p "test_pipeline.py" -v
+python -m unittest tests.test_pipeline -v
 ```
 
 ### Resultados
@@ -572,14 +578,6 @@ python -m unittest discover -s tests -p "test_pipeline.py" -v
 | Esquemas de la Pre-entrega 1 | 15 |
 | Pipeline de la Pre-entrega 2 | 14 |
 | **Total** | **48** |
-
-Resultado de la ejecución local:
-
-```text
-Ran 48 tests in 1.499s
-
-OK
-```
 
 ### Pruebas de la Pre-entrega 1
 

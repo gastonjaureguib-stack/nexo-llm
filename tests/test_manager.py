@@ -1,8 +1,7 @@
 
-import asyncio
 import unittest
 
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 from nexo_llm.manager import AsyncLLMManager
 from nexo_llm.openai_client import OpenAIClient
@@ -10,7 +9,11 @@ from nexo_llm.anthropic_client import AnthropicClient
 from nexo_llm.schemas import ChatMessage, ModelConfig, ModelResponse
 
 
-class TestAsyncLLMManager(unittest.TestCase):
+class TestAsyncLLMManager(unittest.IsolatedAsyncioTestCase):
+
+    def setUp(self):
+        self.enterContext(patch("nexo_llm.openai_client.AsyncOpenAI", autospec=True))
+        self.enterContext(patch("nexo_llm.anthropic_client.AsyncAnthropic", autospec=True))
 
     def test_select_openai(self):
         manager = AsyncLLMManager(
@@ -41,7 +44,7 @@ class TestAsyncLLMManager(unittest.TestCase):
                 api_key="clave-de-prueba"
             )
 
-    async def _check_generate(self):
+    async def test_generate_async(self):
         manager = AsyncLLMManager(
             provider="openai",
             api_key="clave-de-prueba"
@@ -79,10 +82,7 @@ class TestAsyncLLMManager(unittest.TestCase):
             config
         )
 
-    def test_generate_async(self):
-        asyncio.run(self._check_generate())
-
-    async def _check_stream(self):
+    async def test_stream_async(self):
         manager = AsyncLLMManager(
             provider="openai",
             api_key="clave-de-prueba"
@@ -126,9 +126,6 @@ class TestAsyncLLMManager(unittest.TestCase):
             "".join(fragments),
             "La entropía mide la incertidumbre."
         )
-
-    def test_stream_async(self):
-        asyncio.run(self._check_stream())
 
 
 if __name__ == "__main__":

@@ -1,12 +1,14 @@
 
+import json
+import os
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from httpx2 import AsyncClient, MockTransport, Response
 from langchain_core.exceptions import OutputParserException
 from langchain_core.language_models.fake_chat_models import FakeListChatModel
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.messages import AIMessage
-from langchain_core.outputs import ChatGeneration, ChatResult
 from langchain_core.runnables import RunnableLambda
 from langchain_openai import ChatOpenAI
 from pydantic import ValidationError
@@ -15,6 +17,15 @@ from openai.types.chat import ChatCompletion
 
 from nexo_pipeline.chain import RespuestaTruncadaError, crear_cadena, process_text, prompt
 from nexo_pipeline.schemas import ExtraccionTecnica, NivelCriticidad
+
+
+def setUpModule():
+    unittest.enterModuleContext(patch.dict(os.environ, {
+        "LANGSMITH_TRACING": "false",
+        "LANGSMITH_TRACING_V2": "false",
+        "LANGCHAIN_TRACING": "false",
+        "LANGCHAIN_TRACING_V2": "false",
+    }))
 
 
 class TestPipeline(unittest.IsolatedAsyncioTestCase):
@@ -215,13 +226,41 @@ class TestCadenaProduccion(unittest.IsolatedAsyncioTestCase):
             crear.assert_not_called()
 
     async def test_integracion_parser_chatopenai_sin_red(self):
-        modelo = ChatOpenAI(model="gpt-4o-mini", api_key="test-only", max_retries=0)
-        mensaje = AIMessage(content="", additional_kwargs={"parsed": self.datos}, response_metadata={"finish_reason": "stop"})
-        respuesta = ChatResult(generations=[ChatGeneration(message=mensaje)])
-        with patch.object(ChatOpenAI, "_agenerate", new_callable=AsyncMock, return_value=respuesta) as generar:
+        respuestas = iter([("length", "{"), ("stop", json.dumps(self.datos))])
+        solicitudes = []
+
+        def responder(request):
+            solicitudes.append(json.loads(request.content))
+            self.assertEqual(request.method, "POST")
+            self.assertEqual(request.url.path, "/v1/chat/completions")
+            finish_reason, content = next(respuestas)
+            return Response(200, json={
+                "id": "chatcmpl-test",
+                "created": 0,
+                "model": "gpt-4o-mini",
+                "object": "chat.completion",
+                "choices": [{
+                    "index": 0,
+                    "finish_reason": finish_reason,
+                    "message": {"role": "assistant", "content": content},
+                }],
+            })
+
+        async with AsyncClient(transport=MockTransport(responder)) as cliente:
+            modelo = ChatOpenAI(
+                model="gpt-4o-mini",
+                api_key="test-only",
+                base_url="https://openai.invalid/v1",
+                max_retries=0,
+                http_async_client=cliente,
+            )
             resultado = await crear_cadena(modelo).ainvoke({"texto": "Node.js"})
+
         self.assertEqual(resultado, ExtraccionTecnica(**self.datos))
-        generar.assert_awaited_once()
+        self.assertEqual(len(solicitudes), 2)
+        for solicitud in solicitudes:
+            self.assertEqual(solicitud["response_format"]["type"], "json_schema")
+            self.assertEqual(solicitud["messages"][-1]["content"], "Node.js")
 
 
 if __name__ == "__main__":

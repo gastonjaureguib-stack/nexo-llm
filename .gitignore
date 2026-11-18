@@ -15,3 +15,14 @@ __pycache__/
 # Archivos de compilación
 build/
 dist/
+
+vectorstore/
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.tmp
+*.temp
+*~

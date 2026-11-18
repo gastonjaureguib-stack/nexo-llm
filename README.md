@@ -2,12 +2,13 @@
 
 **AI Engineering | Python 3.12 | Coderhouse**
 
-Nexo Intelligence es un proyecto de AI Engineering desarrollado en dos etapas. La primera implementa un cliente asíncrono para trabajar con modelos de OpenAI y Anthropic. La segunda incorpora un pipeline de procesamiento de textos técnicos mediante LangChain, LCEL y Pydantic.
+Nexo Intelligence es un proyecto de AI Engineering que reúne un cliente asíncrono para OpenAI y Anthropic, un pipeline de extracción técnica y un sistema RAG de soporte informático con almacenamiento vectorial local.
 
-El proyecto está organizado en dos paquetes independientes:
+El proyecto está organizado en tres paquetes independientes:
 
 - `nexo_llm`: cliente unificado para generación de respuestas y streaming.
 - `nexo_pipeline`: extracción estructurada de tecnologías, nivel de criticidad y resumen técnico.
+- `nexo_rag`: ingesta incremental, recuperación semántica y respuestas con referencias a la base de conocimiento.
 
 **Repositorio:** https://github.com/gastonjaureguib-stack/nexo-llm
 
@@ -47,6 +48,10 @@ Los objetivos son:
 
 La segunda entrega se incorpora sin modificar la implementación del cliente original.
 
+### Pre-entrega 3 — Recuperación semántica local
+
+Indexar documentos de soporte técnico y responder preguntas con los fragmentos recuperados de ChromaDB. La cadena devuelve una respuesta validada con sus fuentes o se abstiene cuando el contexto es insuficiente.
+
 ---
 
 ## 2. Tecnologías utilizadas
@@ -59,7 +64,11 @@ La segunda entrega se incorpora sin modificar la implementación del cliente ori
 | Pydantic | 2.14.2 | Modelos y validación de datos |
 | python-dotenv | 1.2.4 | Variables de entorno |
 | langchain-core | 1.8.0 | Prompts, LCEL y reintentos |
-| langchain-openai | 1.7.4 | Integración de ChatOpenAI |
+| langchain-openai | 1.7.4 | ChatOpenAI y OpenAIEmbeddings |
+| ChromaDB | 1.5.9 | Persistencia vectorial local y similitud coseno |
+| langchain-chroma | 1.1.0 | Integración de ChromaDB con LangChain |
+| langchain-text-splitters | 1.1.3 | Fragmentación recursiva de documentos |
+| Tiktoken | 0.14.0 | Medición de fragmentos en tokens |
 | unittest | Biblioteca estándar | Pruebas automatizadas |
 | unittest.mock | Biblioteca estándar | Simulación de dependencias |
 | setuptools | Sistema de construcción | Instalación del proyecto |
@@ -72,6 +81,11 @@ Las dependencias están declaradas en `pyproject.toml` y `requirements.txt`.
 
 ```text
 nexo-intelligence/
+├── data/
+│   ├── network.md
+│   ├── security.md
+│   ├── servers.md
+│   └── storage.md
 ├── src/
 │   ├── nexo_llm/
 │   │   ├── __init__.py
@@ -82,10 +96,19 @@ nexo-intelligence/
 │   │   ├── manager.py
 │   │   └── exceptions.py
 │   │
-│   └── nexo_pipeline/
+│   ├── nexo_pipeline/
+│   │   ├── __init__.py
+│   │   ├── schemas.py
+│   │   └── chain.py
+│   │
+│   └── nexo_rag/
 │       ├── __init__.py
+│       ├── chain.py
+│       ├── config.py
+│       ├── ingestion.py
+│       ├── retriever.py
 │       ├── schemas.py
-│       └── chain.py
+│       └── vectorstore.py
 │
 ├── tests/
 │   ├── __init__.py
@@ -93,10 +116,14 @@ nexo-intelligence/
 │   ├── test_clients.py
 │   ├── test_anthropic.py
 │   ├── test_schemas.py
-│   └── test_pipeline.py
+│   ├── test_pipeline.py
+│   └── test_rag.py
 │
+├── vectorstore/  (generado por la ingesta)
+├── cargar_documentos.py
 ├── main.py
 ├── probar_pipeline.py
+├── probar_rag.py
 ├── .env.example
 ├── .gitignore
 ├── pyproject.toml
@@ -124,14 +151,24 @@ Contiene la implementación de la Pre-entrega 2.
 - `schemas.py`: modelo de extracción y validaciones.
 - `chain.py`: prompt, cadena LCEL, reintentos, logging y función de procesamiento.
 
+**`src/nexo_rag/`**
+
+- `config.py`: rutas del proyecto, modelo de embeddings y parámetros de fragmentación y recuperación.
+- `ingestion.py`: lectura, fragmentación y sincronización incremental del índice.
+- `vectorstore.py`: embeddings de OpenAI y conexión con ChromaDB.
+- `retriever.py`: búsqueda por similitud coseno.
+- `chain.py` y `schemas.py`: composición LCEL y validación de respuestas y referencias.
+
 **Archivos ejecutables**
 
 - `main.py`: ejemplo de generación y streaming de la primera entrega.
 - `probar_pipeline.py`: ejemplo de extracción técnica de la segunda entrega.
+- `cargar_documentos.py`: ingesta incremental del corpus.
+- `probar_rag.py`: consulta interactiva del índice RAG.
 
 **`tests/`**
 
-Contiene las pruebas automatizadas de ambas entregas.
+Contiene las pruebas automatizadas de las tres entregas.
 
 ---
 
@@ -179,6 +216,8 @@ python -m pip install -e .
 ```
 
 La instalación editable permite trabajar directamente sobre los paquetes ubicados en `src/`.
+
+Si ya tenés un entorno de las entregas anteriores, repetí la instalación editable para incorporar las dependencias del RAG.
 
 No es necesario configurar manualmente `PYTHONPATH`.
 
@@ -239,6 +278,8 @@ ANTHROPIC_MODEL=
 El cliente de la primera entrega permite seleccionar OpenAI o Anthropic.
 
 El pipeline de la segunda entrega utiliza `ChatOpenAI` y requiere `OPENAI_API_KEY`. Si `OPENAI_MODEL` no está definido o está vacío, utiliza `gpt-4o-mini`.
+
+El RAG utiliza las mismas variables de OpenAI para generar respuestas. Para la ingesta y la búsqueda utiliza `text-embedding-3-small`, definido en `nexo_rag/config.py` e independiente de `OPENAI_MODEL`.
 
 El archivo `.env` está excluido del repositorio mediante `.gitignore`. Las claves reales no deben incluirse en los commits.
 
@@ -560,12 +601,18 @@ Desde la raíz del proyecto, después de instalarlo en modo editable con el int�
 python -m unittest discover -v
 ```
 
-Las pruebas funcionan sin archivo `.env` ni claves de API. Los SDK se simulan en las pruebas de los clientes. La prueba de integración de LangChain usa un transporte HTTP en memoria y el trazado externo está desactivado durante las pruebas del pipeline.
+Las pruebas funcionan sin archivo `.env` ni claves de API. Los SDK se simulan en las pruebas de los clientes. La prueba de integración del pipeline usa un transporte HTTP en memoria. Las pruebas del RAG usan ChromaDB real en directorios temporales, embeddings deterministas y respuestas de chat simuladas. Durante las pruebas del pipeline y del RAG se desactiva el trazado externo.
 
 ### Ejecutar únicamente las pruebas del pipeline
 
 ```bash
 python -m unittest tests.test_pipeline -v
+```
+
+### Ejecutar únicamente las pruebas del RAG
+
+```bash
+python -m unittest tests.test_rag -v
 ```
 
 ### Resultados
@@ -577,7 +624,8 @@ python -m unittest tests.test_pipeline -v
 | AnthropicClient | 7 |
 | Esquemas de la Pre-entrega 1 | 15 |
 | Pipeline de la Pre-entrega 2 | 14 |
-| **Total** | **48** |
+| RAG de la Pre-entrega 3 | 26 |
+| **Total** | **74** |
 
 ### Pruebas de la Pre-entrega 1
 
@@ -609,7 +657,11 @@ Se comprueban:
 
 Las pruebas de la segunda entrega utilizan modelos simulados y mocks para comprobar la lógica del pipeline.
 
-Los 34 tests originales de la primera entrega se mantienen y se ejecutan junto con los 14 nuevos.
+Los 34 tests originales de la primera entrega se ejecutan junto con los 14 del pipeline y los 26 del RAG.
+
+### Pruebas de la Pre-entrega 3
+
+Se comprueban la lectura, el conteo de tokens y el solapamiento, los metadatos, la reapertura de ChromaDB, el alta, cambio y eliminación de archivos, la reapertura de una colección vacía y el orden de recuperación por similitud. La suite también verifica consultas vacías, respuestas con y sin evidencia, rechazo de referencias inventadas y propagación de errores técnicos.
 
 ---
 
@@ -619,6 +671,7 @@ Los 34 tests originales de la primera entrega se mantienen y se ejecutan junto c
 
 - Las claves se gestionan mediante variables de entorno.
 - `.env` está excluido del repositorio.
+- El índice local de ChromaDB está excluido mediante `vectorstore/`.
 - Se utiliza un entorno virtual independiente.
 - Los datos estructurados se validan mediante Pydantic.
 - Los errores recuperables se controlan mediante reintentos limitados.
@@ -638,7 +691,57 @@ Por lo tanto, los tests aprobados no garantizan la disponibilidad de credenciale
 
 ---
 
-## 10. Estado del proyecto
+## 10. Pre-entrega 3 — RAG de soporte técnico
+
+### Ingesta y persistencia
+
+La carpeta `data/` contiene cuatro documentos originales en español sobre redes, almacenamiento, seguridad y administración de servidores. La ingesta procesa archivos `.md` y `.txt` en UTF-8 del primer nivel, omite archivos vacíos y enlaces simbólicos, y detiene la actualización si un documento no se puede leer.
+
+```bash
+python cargar_documentos.py
+```
+
+`RecursiveCharacterTextSplitter` propone cortes naturales con un tamaño objetivo de **800 tokens**. La ingesta los ajusta con Tiktoken para respetar un mínimo de **500 tokens** por fragmento y un solapamiento de **50 tokens** cuando hay un corte válido. Si el tramo restante no permite dos fragmentos de al menos 500 tokens con ese solapamiento, se conserva unido, aunque supere el objetivo de 800. Los documentos con menos de 500 tokens se conservan completos en un único fragmento. La primera carga del vocabulario `cl100k_base` puede descargar el archivo público de Tiktoken para almacenarlo en caché.
+
+| Documento | Tokens por fragmento |
+|---|---|
+| `network.md` | 658, 500 |
+| `storage.md` | 607, 500 |
+| `security.md` | 602, 500 |
+| `servers.md` | 639, 500 |
+
+En el corpus de ejemplo, cada par de fragmentos consecutivos comparte 50 tokens y permite reconstruir el documento original tras la limpieza de la ingesta.
+
+ChromaDB crea la colección `nexo_knowledge` en `vectorstore/`. Cada fragmento guarda nombre de archivo, origen relativo, índice e identificador derivado del origen, posición y contenido. Al repetir la ingesta, solo los identificadores nuevos requieren embeddings. Primero se almacenan los fragmentos nuevos y luego se retiran los de archivos eliminados o modificados. Ejecutá una sola ingesta a la vez y repetila al cambiar el corpus.
+
+Si ya indexaste el corpus con la fragmentación anterior, ejecutá de nuevo la ingesta cuando tengas cuota disponible. La colección reemplazará los fragmentos que cambiaron y conservará los identificadores que sigan vigentes.
+
+### Consultas
+
+```bash
+python probar_rag.py
+```
+
+Escribí una pregunta por vez y usá `salir` para terminar. Cada consulta válida con una colección poblada se convierte en un embedding con el mismo modelo de la ingesta. ChromaDB recupera hasta cuatro fragmentos por similitud coseno. La cadena LCEL pasa la pregunta y los fragmentos a `ChatOpenAI`. `PydanticOutputParser` valida el formato y la cadena comprueba que cada referencia corresponda a un origen recuperado.
+
+Si falta evidencia, la respuesta esperada es `No lo sé` con referencias vacías. Una colección ausente o vacía produce esa salida sin invocar el modelo. Los errores de autenticación, conexión y acceso al índice se informan como fallos de la ejecución.
+
+| Pregunta de validación funcional | Resultado esperado |
+|---|---|
+| ¿Qué pasos debo seguir cuando un servidor se queda sin espacio en disco? | Pasos de diagnóstico, liberación segura y verificación con referencia a `storage.md`. |
+| Mi conexión a internet funciona demasiado lento. ¿Qué debería revisar? | Comprobaciones de alcance, latencia, pérdida o congestión con referencia a `network.md`. |
+| ¿Cuál es el salario mensual del director de Nexo Intelligence? | `No lo sé`, sin referencias. |
+| ¿Cuál es la dirección IP pública del servidor principal de Nexo Intelligence? | `No lo sé`, sin referencias. |
+
+### Alcance y limitaciones
+
+La colección y las búsquedas vectoriales se ejecutan localmente. Al usar los scripts con credenciales, OpenAI recibe los textos que se convierten en embeddings y, para generar la respuesta, la pregunta con los fragmentos recuperados. Estas operaciones requieren conectividad y pueden generar consumo.
+
+La similitud mide proximidad temática. La abstención con una colección poblada depende de que el modelo reconozca la falta de evidencia. La validación comprueba el formato y la pertenencia de las referencias al contexto recuperado. La fidelidad de cada afirmación requiere revisión del contenido citado. Las cuatro consultas funcionales quedan pendientes de ejecución contra OpenAI.
+
+---
+
+## 11. Estado del proyecto
 
 **Pre-entrega 1 — Unified Async LLM Client**
 
@@ -648,7 +751,11 @@ Implementada y conservada en `src/nexo_llm/`.
 
 Implementada en `src/nexo_pipeline/`, con extracción estructurada, validación, reintentos, logging y ejecución asíncrona.
 
-**Pruebas automatizadas:** 48 aprobadas.
+**Pre-entrega 3 — Recuperación semántica local**
+
+Implementada en `src/nexo_rag/`, con corpus de ejemplo, ingesta incremental y consulta interactiva.
+
+**Pruebas automatizadas:** 74 casos.
 
 ---
 
